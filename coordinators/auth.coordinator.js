@@ -7,7 +7,7 @@ import User from '../classes/user.class.js';
 export default class AuthCoordinator {
 
     static loginUser = async (username, password) => {
-        const user = await AuthM.findUserByUsername(username);
+        const user = await AuthM.findUserByUsername(username.toLowerCase());
         if (!user) throw new Error('User not found');
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -27,7 +27,7 @@ export default class AuthCoordinator {
             userData.fName,
             userData.lName,
             userData.email,
-            userData.username,
+            userData.username.toLowerCase(),
             hashedPassword
         );
         const result = await AuthM.addUser(newUser);

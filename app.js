@@ -25,6 +25,9 @@ app.use(cors({
 app.use('/api/v1/reports', isAdmin, reportR);
 app.use('/api/v1/auth', authR);
 app.use('/api/v1/users', isAdmin, userRouter);
+app.use('/', (req, res) => {
+  res.send('Welcome to Tracer API');
+});
 
 // setup db
 const config = {

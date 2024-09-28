@@ -46,7 +46,7 @@ export default class UsersCoordinator {
 
     static findUserByUsername = async (organizationID, username) => {
         try {
-            const user = await UsersModel.getUser(organizationID, username);
+            const user = await UsersModel.getUser(organizationID, username.toLowerCase());
             return user;
         } catch (error) {
             throw new Error('Error finding user by username: ' + error.message);
@@ -64,11 +64,13 @@ export default class UsersCoordinator {
 
     static updateUser = async (organizationID, username, update) => {
         try {
-            const user = await UsersModel.findUserByUsername(organizationID, username);
+            update.username = update.username.toLowerCase();
+            const user = await UsersModel.findUserByUsername(organizationID, username.toLowerCase());
             const updatedUser = new User(
                 user.organization,
                 user.fName,
                 user.lName,
+                user.email,
                 user.username,
                 user.password
             );
