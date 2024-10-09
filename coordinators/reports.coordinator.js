@@ -168,28 +168,7 @@ export default class ReportsCoor {
           csvData
         );
         //console.log("Created report object:", report);
-      } /* else if (!csvData[0].Month) {
-        type = 'Merchant Report';
-        const currentDate = new Date();
-        let monthIndex = currentDate.getMonth(); // Get the current month (0-11)
-        let year = currentDate.getFullYear(); // Get the current year
-
-        if (monthIndex === 0) { // If the current month is January (0)
-          monthIndex = 11; // Set to December of the previous year
-          year -= 1; // Adjust the year to the previous year
-        } else {
-          monthIndex -= 1; // Simply go back one month
-        }
-
-        const monthNames = [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"
-        ];
-
-        const month = monthNames[monthIndex]; // Get the full month name
-        formattedMonthYear = `${month} ${year}`; // Format as "July 2024"
-
-      }*/ else {
+      } else {
         console.log("Accept.Blue Report");
         type = 'billing';
         formattedMonthYear = csvData[0].Month; // Assuming Month is already formatted in the CSV

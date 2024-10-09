@@ -8,6 +8,7 @@ export default class Report {
     this.type = type;
     this.month = month;
     this.reportData = reportData;
+    this.processors = [];
   }
 
   updateReport(data) {
