@@ -7,10 +7,12 @@ export default class ArReportUtil {
       const type = 'billing';
       let report;
       if (processor === 'PAAY') {
+        // Filter out rows without a MID
+        const filteredData = csvData.filter(row => row['MID']);
         let rowIndex = 0;
-        csvData.forEach(row => {
+        filteredData.forEach(row => {
           const total = row.Total.result;
-          csvData[rowIndex].Total = total.toFixed(2);
+          filteredData[rowIndex].Total = total.toFixed(2);
           rowIndex++;
         });
         report = new Report(

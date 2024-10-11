@@ -15,6 +15,18 @@ export default class AgentsModel {
         }
     };
 
+    static createAgents = async (agents) => {
+        try {
+            const result = await db.dbAgents().insertMany(agents);
+            if (!result.acknowledged) {
+                throw new Error('Model Error: Error adding agents to DB');
+            }
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    };
+    
     static getAgent = async (organizationID, agentID) => {
         try {
             const agent = await db.dbAgents().findOne({organizationID,  agentID }, { projection: Constants.DEFAULT_PROJECTION });

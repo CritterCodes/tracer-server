@@ -55,6 +55,7 @@ reportR.post('/organizations/:organizationID/:agentID', ReportsV2Con.buildAgentR
 //reportR.post('/organizations/:organizationID/:agentID', ReportsV2Con.createAgentReport);
 reportR.get('/:reportID', ReportsV2Con.getReport);
 reportR.delete('/:reportID', ReportsV2Con.deleteReport);
+reportR.patch('/:reportID', ReportsV2Con.updateReport);
 
 // Multer error handling middleware
 reportR.use((err, req, res, next) => {

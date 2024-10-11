@@ -2,13 +2,8 @@ import { parseFile } from '../utils/fileParser.util.js';
 import AgentReportUtil from '../utils/agentReport.util.js';
 import ProcessorReportUtil from '../utils/processorReport.util.js';
 import ArReportUtil from '../utils/arReport.util.js';
-import getBranchIDMap from '../utils/branchIDMap.util.js';
-import Type1 from '../utils/type1.util.js'; // Utility functions
-import Type2 from '../utils/type2.util.js'; // Utility functions
-import Type3 from '../utils/type3.util.js'; // Utility functions
 import ReportsV2M from '../models/reportsV2.model.js';
 import AgentsModel from '../models/agents.model.js';
-import { report } from 'process';
 
 export default class ReportsV2Coor {
   static getReport = async (reportID) => {
@@ -161,7 +156,6 @@ export default class ReportsV2Coor {
       if (!agent) {
         throw new Error('Agent not found');
       };
-      const agentClients = agent.clients;
       // get processor reports
       console.log('Getting processor reports for organization:', organizationID, 'and month/year:', monthYear);
       const processorReports = await ReportsV2M.getProcessorReportsByMonth(organizationID, monthYear);
@@ -171,7 +165,7 @@ export default class ReportsV2Coor {
       };
       // build report 
       console.log('Building agent report');
-      const agentReport = AgentReportUtil.buildAgentReport(organizationID, monthYear, agentClients, processorReports);
+      const agentReport = AgentReportUtil.buildAgentReport(organizationID, monthYear, agent, processorReports);
       console.log('Agent Report:', agentReport);
       return agentReport;
     } catch (error) {
@@ -205,6 +199,14 @@ export default class ReportsV2Coor {
       return await ReportsV2M.deleteReport(reportID);
     } catch (error) {
       throw new Error('Error deleting report: ' + error.message);
+    }
+  };
+
+  static updateReport = async (reportID, report) => {
+    try {
+      return await ReportsV2M.updateReport(reportID, report);
+    } catch (error) {
+      throw new Error('Error updating report: ' + error.message);
     }
   };
 }

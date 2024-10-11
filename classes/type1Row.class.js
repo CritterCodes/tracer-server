@@ -3,7 +3,7 @@ export default class Type1Row {
         this['Merchant Id'] = merchantId; 
         this['Merchant Name'] = merchantName; 
         this['Transaction'] = transaction; 
-        this['SalesAmount'] = salesAmount; 
+        this['Sales Amount'] = salesAmount; 
         this['Income'] = income; 
         this['Expenses'] = expenses;
         this['Net'] = net;

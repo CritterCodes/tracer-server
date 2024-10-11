@@ -1,3 +1,6 @@
+# ssh/pem files
+*.pem
+
 # Logs
 logs
 *.log

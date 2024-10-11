@@ -130,4 +130,16 @@ export default class ReportsV2Con {
       next(error);
     }
   };
+
+  static updateReport = async (req, res, next) => {
+    try {
+      const report = await ReportsV2Coor.updateReport(req.params.reportID, req.body);
+      if (!report) {
+        return res.status(404).json({ message: 'Report not updated' });
+      }
+      return res.status(200).json(report);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

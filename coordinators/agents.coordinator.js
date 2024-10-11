@@ -16,47 +16,49 @@ export default class AgentsCoordinator {
 
     static uploadAgents = async (organizationID, fileBuffer, mimetype) => {
         try {
-          const csvData = await parseFile(fileBuffer, mimetype);
-          if (!csvData || csvData.length === 0) {
-            throw new Error('Parsed data is empty. Please check the input file.');
-          }
-      
-          // Get a list of all agents for an organization
-          console.log('asking for agents');
-          const agents = await AgentsModel.getAgents(organizationID);
-          console.log('got agents:', agents);
-      
-          // Build an array of agents from the CSV data
-          const agentsArray = await AgentsUtil.buildAgentsArray(organizationID, agents, csvData);
-          
-          // Add or update the agents in the database
-          const allResults = [];
-          for (const agent of agentsArray) {
-            if (Array.isArray(agents) && agents.some(a => a.fName === agent.fName && a.lName === agent.lName)) {
-              // Update existing agent
-              //console.log('found agent:', agents.find(rep => rep.agentID === agent.agentID), 'Updating agent:', agent);
-              const result = await AgentsModel.updateAgent(organizationID, agent);
-              if (!result.acknowledged) {
-                throw new Error('Error updating agent: ' + result.message);
-              }
-              allResults.push({ agentID: agent.agentID, result });
-            } else {
-              // Create new agent
-              this.createAgent
-              const result = await AgentsModel.createAgent(agent);
-              if (!result.acknowledged) {
-                throw new Error('Error creating agent: ' + result.message);
-              }
-              allResults.push({ agentID: agent.agentID, result });
+            const csvData = await parseFile(fileBuffer, mimetype);
+            if (!csvData || csvData.length === 0) {
+                throw new Error('Parsed data is empty. Please check the input file.');
             }
-          }
-      
-          return allResults;
+    
+            // Get a list of all agents for an organization
+            console.log('asking for agents');
+            let agents = await AgentsModel.getAgents(organizationID);
+            console.log('got agents:', agents);
+    
+            // Ensure agents is an array
+            if (!Array.isArray(agents)) {
+                agents = [];
+            }
+    
+            // Build an array of agents from the CSV data
+            const agentsArray = AgentsUtil.buildAgentsArray(organizationID, agents, csvData);
+    
+            // Add or update the agents in the database
+            const allResults = [];
+            for (const agent of agentsArray) {
+                let result;
+                if (Array.isArray(agents) && agents.some(a => a.fName === agent.fName && a.lName === agent.lName)) {
+                    // Update existing agent
+                    result = await AgentsModel.updateAgent(organizationID, agent);
+                    if (!result.acknowledged) {
+                        throw new Error('Error updating agent: ' + result.message);
+                    }
+                } else {
+                    // Add new agent
+                    result = await AgentsModel.createAgent(agent);
+                    if (!result.acknowledged) {
+                        throw new Error('Error adding agent: ' + result.message);
+                    }
+                }
+                allResults.push(result);
+            }
+    
+            return allResults;
         } catch (error) {
-          throw new Error('Error adding agents in coordinator: ' + error);
+            throw new Error('Error adding agents in coordinator: ' + error);
         }
-      };
-      
+    };
 
     static getAgent = async (organizationID, agentID) => {
         try {
