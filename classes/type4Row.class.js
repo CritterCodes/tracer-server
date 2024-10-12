@@ -1,5 +1,5 @@
 export default class Type4Row {
-    constructor(merchantId, merchantName, net, bankSplit, BranchID) {
+    constructor(merchantId, merchantName, net, bankSplit, BranchID, needsAudit) {
         this['Merchant Id'] = merchantId;
         this['merchant Name'] = merchantName;
         this['Income'] = '';
@@ -8,6 +8,8 @@ export default class Type4Row {
         this['%'] = this.convertToPercentage(bankSplit);
         this['Bank Payout'] = this.calculateBankPayout(net, bankSplit).toFixed(2);
         this['Branch ID'] = BranchID;
+        this.approved = false;
+        this.needsAudit = needsAudit;
     }
 
     convertToPercentage(value) {

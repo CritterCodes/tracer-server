@@ -1,5 +1,6 @@
 # ssh/pem files
 *.pem
+*.ppk
 
 # Logs
 logs

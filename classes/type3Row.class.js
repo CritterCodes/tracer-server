@@ -1,6 +1,6 @@
 
 export default class Type3Row {
-    constructor(merchantId,	merchantDBA, payoutAmount, volume, sales, bankSplit, branchID) {
+    constructor(merchantId,	merchantDBA, payoutAmount, volume, sales, bankSplit, branchID, needsAudit) {
         this['Merchant Id'] = merchantId;
         this['Merchant DBA'] = merchantDBA;
         this['Payout Amount'] = payoutAmount;
@@ -11,6 +11,8 @@ export default class Type3Row {
         this['Bank Split'] =  this.convertToPercentage(bankSplit); ;
         this['Bank Payout'] = this.calculateBankPayout().toFixed(2);
         this['Branch ID'] = branchID;
+        this.approved = false;
+        this.needsAudit = needsAudit;
     }
     convertToPercentage(value) {
         const percentage = value * 100;

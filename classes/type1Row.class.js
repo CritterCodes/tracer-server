@@ -1,5 +1,5 @@
 export default class Type1Row {
-    constructor(merchantId, merchantName, transaction, salesAmount, income, expenses, net, bps, bankSplit, branchID) {
+    constructor(merchantId, merchantName, transaction, salesAmount, income, expenses, net, bps, bankSplit, branchID, needsAudit) {
         this['Merchant Id'] = merchantId; 
         this['Merchant Name'] = merchantName; 
         this['Transaction'] = transaction; 
@@ -11,6 +11,8 @@ export default class Type1Row {
         this['%'] = this.convertToPercentage(bankSplit);  // Note: Use bracket notation for 'percentage'
         this['Agent Net'] = this.calculateBankPayout(net, bankSplit).toFixed(2);  // Note: Use bracket notation for 'Net'
         this['branchID'] = branchID;
+        this.approved = false;
+        this.needsAudit = needsAudit;
     }
     convertToPercentage(value) {
         const percentage = value * 100;

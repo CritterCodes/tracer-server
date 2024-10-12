@@ -4,7 +4,6 @@ import Type1Row from "../classes/type1Row.class.js";
 import Type2Row from "../classes/type2Row.class.js";
 import Type3Row from "../classes/type3Row.class.js";
 import Type4Row from "../classes/type4Row.class.js";
-import { response } from "express";
 export default class AgentReportUtil {
 
   static buildAgentReport = (organizationID, monthYear, agent, processorReports) => {

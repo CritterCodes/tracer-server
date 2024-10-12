@@ -77,6 +77,7 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
             let procRow;
             let bankSplit;
             let branchID;
+            const needsAudit = Object.keys(branchIDMap).some(key => key === row['Merchant ID']);
             if (isObject(branchIDMap[row['Merchant ID']])) {
                 bankSplit = branchIDMap[row['Merchant ID']].agentSplit;
                 branchID = 'N/A';
@@ -96,7 +97,8 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                         row['Net'],
                         row['BPS'],
                         bankSplit,
-                        branchID  // Ensure branchIDMap is correctly mapped
+                        branchID , // Ensure branchIDMap is correctly mapped
+                        needsAudit
                     );
                     break;
                 case 'type2':
@@ -113,7 +115,8 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                         row['Refunds'],            // Correctly named
                         row['Reject Amount'],      // Correctly named
                         bankSplit,
-                        branchID  // Mapping the correct Merchant ID to branchID
+                        branchID,  // Mapping the correct Merchant ID to branchID
+                        needsAudit
                     );
                     break;
                 case 'type3':
@@ -128,7 +131,8 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                         row['Sale Count'],
                         row['Sale Amount'],
                         bankSplit,
-                        branchID
+                        branchID,
+                        needsAudit
                     );
                     break;
                 case 'type4':
@@ -142,7 +146,8 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                             row['Merchant Name'],
                             row['Billing Amount'].result.toFixed(2),
                             bankSplit,
-                            branchID  // Ensure branchIDMap is correctly mapped
+                            branchID,
+                            needsAudit
                         );
                     } else {
                         if (row['Merchant Id'] === 'Totals') {
@@ -154,7 +159,8 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                             row['Name'],
                             row['TOTAL FEES'].result,
                             bankSplit,
-                            branchID
+                            branchID,
+                            needsAudit
                         );
                     }
                     break;
@@ -193,3 +199,5 @@ const buildBranchIDMap = async (agents) => {
         throw new Error('Error building branchIDMap: ' + error.message);
     }
 };
+
+

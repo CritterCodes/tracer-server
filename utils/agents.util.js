@@ -8,16 +8,29 @@ export default class AgentsUtil {
             csvData.forEach(row => {
                 if (row['Assigned Users'] && row['Status'] === 'Merchant Is Live') {
                     const assignedUsers = row['Assigned Users'].split(', ');
+                    const newAgent = {};
                     assignedUsers.forEach(user => {
-                        const { role, fName, lName, company } = parseUser(user);
-                        const agentIndex = findAgentIndex(agentsArray, fName, lName, company);
+                        const parsedUser = parseUser2(user);
 
-                        if (agentIndex !== -1) {
-                            updateExistingAgent(agentsArray, agentIndex, row);
+                        if (parseUser.company) {
+                            newAgent.company = parsedUser.company;
+                        } else if (parsedUser.partner) {
+                            newAgent.partner = parsedUser.partner;
+                        } else if (parsedUser.manager) {
+                            newAgent.manager = parsedUser.manager;
                         } else {
-                            createNewAgent(agentsArray, organizationID, role, fName, lName, company, row);
-                        }
+                            newAgent.fName = parsedUser.fName;
+                            newAgent.lName = parsedUser.lName;
+                        };
                     });
+                    
+                    const agentIndex = findAgentIndex(agentsArray, fName, lName);
+
+                    if (agentIndex !== -1) {
+                        updateExistingAgent(agentsArray, agentIndex, row);
+                    } else {
+                        createNewAgent(agentsArray, organizationID, role, fName, lName, company, row);
+                    }
                 } else {
                     console.error('Assigned Users field is missing in row:', row);
                 }
@@ -29,12 +42,36 @@ export default class AgentsUtil {
     };
 }
 
+const parseUser2 = (user) => {
+    try {
+        const name = user.split(' ');
+        const cleanName = name.filter(n => !/^[0-9-]+$/.test(n) && n.trim() !== '');
+        if (user.includes('h2sf' || 'tracer')) {
+            const company = cleanName[0];
+            return { company };
+        } else if (user.toLowerCase().includes('hbs')) {
+            const partner = cleanName[0];
+            return { partner };
+        } else if (user.toLowerCase().includes('cody burnell' || 'christy G milton')) {
+            const manager = cleanName[0];
+            return { manager };
+        } else {
+            const fName = name[0];
+            const lName = cleanName[1];
+            return { fName, lName };
+        };
+    } catch (error) {
+        console.error('Error parsing user:', user, error.message);
+
+    }
+};
+
 const parseUser = (user) => {
     const name = user.split(' ');
-const cleanName = name.filter(n => !/^[0-9-]+$/.test(n) && n.trim() !== '');
+    const cleanName = name.filter(n => !/^[0-9-]+$/.test(n) && n.trim() !== '');
     console.log('Name:', cleanName);
     let role, fName, lName, company;
-    if (user.toLowerCase().includes('tracer') || user.toLowerCase().includes('partner')) {
+    if (user.toLowerCase().includes('h2sf')) {
         role = 'company';
         company = cleanName[0];
     } else {
@@ -50,18 +87,16 @@ const cleanName = name.filter(n => !/^[0-9-]+$/.test(n) && n.trim() !== '');
     return { role, fName, lName, company };
 };
 
-const findAgentIndex = (agents, fName, lName, company) => {
+const findAgentIndex = (agents, fName, lName) => {
     // Find the agent or company based on the correct criteria
     return agents.findIndex(agent =>
-        (agent.role === 'agent' && agent.fName === fName && agent.lName === lName) ||
-        (agent.role === 'company' && agent.company === company)
-    );
+        (agent.role === 'agent' && agent.fName === fName && agent.lName === lName));
 };
 
 const updateExistingAgent = (agents, agentIndex, row) => {
     const agent = agents[agentIndex];
     const merchant = buildMerchant(row);
-    
+
     // Check if the merchant already exists in the agent's client list
     const midExists = agent.clients.some(client => client.merchantID === merchant.merchantID);
     if (!midExists) {
