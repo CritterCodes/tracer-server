@@ -22,15 +22,13 @@ export default class AgentsCoordinator {
             }
     
             // Get a list of all agents for an organization
-            console.log('asking for agents');
             let agents = await AgentsModel.getAgents(organizationID);
-            console.log('got agents:', agents);
     
             // Ensure agents is an array
             if (!Array.isArray(agents)) {
                 agents = [];
             }
-    
+            
             // Build an array of agents from the CSV data
             const agentsArray = AgentsUtil.buildAgentsArray(organizationID, agents, csvData);
     

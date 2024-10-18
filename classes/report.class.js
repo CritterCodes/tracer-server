@@ -9,6 +9,7 @@ export default class Report {
     this.month = month;
     this.reportData = reportData;
     this.processors = [];
+    this.approved = false;
   }
 
   updateReport(data) {

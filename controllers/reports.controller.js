@@ -42,24 +42,19 @@ export default class ReportsCon {
 
   static createReports = async (req, res, next) => {
     try {
-      console.log("Request received:", req.body); // Log the request body
-      console.log("Files received:", req.files); // Log the files received from the front-end
       const files = req.files; // Object containing files for each field
   
       if (!files || (!files.acceptBlueFile && !files.paayFile)) {
-        console.log("No files uploaded"); // Log if no files are uploaded
         res.status(400).json({ message: 'No files uploaded' });
         return;
       }
   
       const reportPromises = [];
       const organizationID = req.params.organizationID; // Get the organization ID from the request parameters
-      console.log("Organization ID:", organizationID); // Log the organization ID
   
       if (files.acceptBlueFile) {
         const fileBuffer = files.acceptBlueFile[0].buffer;
         const mimetype = files.acceptBlueFile[0].mimetype;
-        console.log("Processing acceptBlueFile with mimetype:", mimetype); // Log file info
   
         // Create report for 'accept.blue'
         const promises = await ReportsCoor.createReport(organizationID, 'accept.blue', fileBuffer, mimetype, {});
@@ -67,7 +62,6 @@ export default class ReportsCon {
       }
   
       if (files.paayFile) {
-        console.log("Processing paayFile"); // Log the processing of PAAY file
         // Create report for 'PAAY'
         const promises = await ReportsCoor.createReport(
           organizationID,

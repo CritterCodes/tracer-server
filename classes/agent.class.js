@@ -1,16 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 
 export default class Agent {
-    constructor(organizationID, role, fName, lName, clients, company) {
+    constructor(organizationID, fName, lName, company, manager, clients) {
         this.organizationID = organizationID;
         this.agentID = uuidv4();
-        this.company = '';
-        this.companySplit = '%';
-        this.partner = '';
-        this.partnerSplit = '';
-        this.manager = '';
+        this.company = company;
+        this.companySplit = '';
+        this.manager = manager;
         this.managerSplit = '';
-        this.role = role;
         this.fName = fName;
         this.lName = lName;
         this.agentSplit = '';

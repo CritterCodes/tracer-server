@@ -12,6 +12,7 @@ export default class ProcessorReportUtil {
             console.log('Building processor report:', processor);
             // build branchIDMap
             const branchIDMap = await buildBranchIDMap(agents);
+            console.log('Branch ID Map:', branchIDMap);
             // build processor rows
             const procRowsArray = await buildProcRows(processor, csvData, branchIDMap);
             const type = 'processor';
@@ -74,19 +75,20 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
             return typeof value === 'object' && value !== null;
         }
         csvData.forEach(row => {
-            let procRow;
-            let bankSplit;
-            let branchID;
-            const needsAudit = Object.keys(branchIDMap).some(key => key === row['Merchant ID']);
-            if (isObject(branchIDMap[row['Merchant ID']])) {
-                bankSplit = branchIDMap[row['Merchant ID']].agentSplit;
-                branchID = 'N/A';
-            } else {
-                branchID = branchIDMap[row['Merchant ID']];
-                bankSplit = 0.35;
-            };
+            console.log('Row:', row);
+            let procRow, bankSplit, branchID, needsAudit;
+            
             switch (processorType) {
                 case 'type1':
+                    needsAudit = branchIDMap.hasOwnProperty(row['Merchant ID']) ? false : true;
+                    console.log('checking merchant ID:', row['Merchant ID'], 'needs audit:', needsAudit, 'branchID', branchIDMap[row['Merchant ID']]);
+                    if (!branchIDMap[row['Merchant ID']]) {
+                        bankSplit = 0;
+                        branchID = 'N/A';
+                    } else {
+                        branchID = branchIDMap[row['Merchant ID']];
+                        bankSplit = 0.35;
+                    };
                     procRow = new Type1Row(
                         row['Merchant ID'],  // trim to handle spaces
                         row['Merchant'],
@@ -102,6 +104,15 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                     );
                     break;
                 case 'type2':
+                    needsAudit = branchIDMap.hasOwnProperty(row['Merchant ID']) ? false : true;
+                    console.log('checking merchant ID:', row['Merchant ID'], 'needs audit:', needsAudit, 'branchID', branchIDMap[row['Merchant ID']]);
+                    if (!branchIDMap[row['Merchant ID']]) {
+                        bankSplit = 0;
+                        branchID = 'N/A';
+                    } else {
+                        branchID = branchIDMap[row['Merchant ID']];
+                        bankSplit = 0.35;
+                    };
                     if (!row['Merchant ID']) {
                         console.log('Row is empty');
                         return;
@@ -120,6 +131,15 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                     );
                     break;
                 case 'type3':
+                    needsAudit = branchIDMap.hasOwnProperty(row['Client']) ? false : true;
+                    console.log('checking merchant ID:', row['Client'], 'needs audit:', needsAudit, 'branchID', branchIDMap[row['Client']]);
+                    if (!branchIDMap[row['Client']]) {
+                        bankSplit = 0;
+                        branchID = 'N/A';
+                    } else {
+                        branchID = branchIDMap[row['Client']];
+                        bankSplit = 0.35;
+                    };
                     if (!row['Client']) {
                         console.log('Row is empty');
                         return;
@@ -137,6 +157,15 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                     break;
                 case 'type4':
                     if (processor === 'Rectangle Health') {
+                        needsAudit = branchIDMap.hasOwnProperty(row['MID']) ? false : true;
+                        console.log('checking merchant ID:', row['MID'], 'needs audit:', needsAudit, 'branchID', branchIDMap[row['MID']]);
+                        if (!branchIDMap[row['Merchant ID']]) {
+                            bankSplit = 0;
+                            branchID = 'N/A';
+                        } else {
+                            branchID = branchIDMap[row['MID']];
+                            bankSplit = 0.35;
+                        };
                         if (!row['MID']) {
                             console.log('Row is empty');
                             return;
@@ -150,6 +179,15 @@ const buildProcRows = async (processor, csvData, branchIDMap) => {
                             needsAudit
                         );
                     } else {
+                        needsAudit = branchIDMap.hasOwnProperty(row['Merchant Id']) ? false : true;
+                        console.log('checking merchant Id:', row['Merchant Id'], 'needs audit:', needsAudit, 'branchID', branchIDMap[row['Merchant Id']]);
+                        if (!branchIDMap[row['Merchant Id']]) {
+                            bankSplit = 0;
+                            branchID = 'N/A';
+                        } else {
+                            branchID = branchIDMap[row['Merchant Id']];
+                            bankSplit = 0.35;
+                        };
                         if (row['Merchant Id'] === 'Totals') {
                             console.log('Row is empty');
                             return;
@@ -183,13 +221,8 @@ const buildBranchIDMap = async (agents) => {
             // check if agent has clients
             if (agent.clients) {
                 agent.clients.forEach(client => {
-                    if (client.branchID) {
                         branchIDMap[client.merchantID] = client.branchID
                         return;
-                    }
-                    branchIDMap[client.merchantID] = {
-                        agentSplit: agent.agentSplit
-                    };
                 });
             };
         });

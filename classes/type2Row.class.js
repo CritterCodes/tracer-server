@@ -1,5 +1,6 @@
 export default class Type2Row {
     constructor(merchanId, merchantName, payoutAmount, volume, sales, refunds, rejectAmount, bankSplit, branchID, needsAudit) {
+        this.needsAudit = needsAudit;
         this['Merchant Id'] = merchanId;
         this['Merchant Name'] = merchantName;
         this['Payout Amount'] = payoutAmount;
@@ -7,11 +8,10 @@ export default class Type2Row {
         this['Sales'] = sales;
         this['Refunds'] = refunds;
         this['Reject Amount'] = rejectAmount;
-        this['Bank Split'] = this.convertToPercentage(bankSplit); ;
+        this['Bank Split'] = typeof bankSplit === "string" ? bankSplit : this.convertToPercentage(bankSplit);
         this['Bank Payout'] = this.calculateBankPayout().toFixed(2);
         this['Branch ID'] = branchID;
         this.approved = false;
-        this.needsAudit = needsAudit;
     }
     convertToPercentage(value) {
         const percentage = value * 100;

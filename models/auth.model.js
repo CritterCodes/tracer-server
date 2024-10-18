@@ -41,7 +41,6 @@ export default class AuthM {
         try {
             return await db.dbUsers().findOne({ username });
         } catch (error) {
-            console.error('Error finding user by username in DB: ', error);
             return error;
         }
     }

@@ -22,7 +22,6 @@ export const login = async (req, res) => {
         // Respond with the token
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
-        console.error('Error logging in user: ', error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -31,7 +30,6 @@ export const login = async (req, res) => {
 export const signup = async (req, res) => {
     try {
         const result = await AuthCoordinator.addUser(req.body);
-        console.log(result)
         if (result.isDupe) {
             res.status(200).json(result);
         } else {

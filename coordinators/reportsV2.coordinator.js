@@ -1,11 +1,17 @@
 import { parseFile } from '../utils/fileParser.util.js';
 import AgentReportUtil from '../utils/agentReport.util.js';
+import Report from '../classes/report.class.js';
 import ProcessorReportUtil from '../utils/processorReport.util.js';
 import ArReportUtil from '../utils/arReport.util.js';
 import ReportsV2M from '../models/reportsV2.model.js';
 import AgentsModel from '../models/agents.model.js';
+import ProcessorSummaryUtil from '../utils/processorSummary.util.js';
+import AgentSummaryUtil from '../utils/agentSummary.util.js';
 
 export default class ReportsV2Coor {
+
+  // General report functions
+    // Get a report by ID
   static getReport = async (reportID) => {
     try {
       return await ReportsV2M.getReport(reportID);
@@ -14,6 +20,7 @@ export default class ReportsV2Coor {
     }
   };
 
+    // Get all reports of a certain type for an organization
   static getReports = async (organizationID, type) => {
     try {
       return await ReportsV2M.getReports(organizationID, type);
@@ -22,6 +29,7 @@ export default class ReportsV2Coor {
     }
   };
 
+    // Get all reports for an organization
   static getAllReports = async (organizationID) => {
     try {
       return await ReportsV2M.getAllReports(organizationID);
@@ -30,6 +38,28 @@ export default class ReportsV2Coor {
     }
   };
 
+    // delete a report
+  static deleteReport = async (reportID) => {
+    try {
+      return await ReportsV2M.deleteReport(reportID);
+    } catch (error) {
+      throw new Error('Error deleting report: ' + error.message);
+    }
+  };
+
+    // update a report
+  static updateReport = async (reportID, report) => {
+    try {
+      return await ReportsV2M.updateReport(reportID, report);
+    } catch (error) {
+      throw new Error('Error updating report: ' + error.message);
+    }
+  };
+
+
+
+  // AR report functions
+    // Create an AR report
   static createArReport = async (organizationID, processor, fileBuffer, mimetype, monthYear) => {
     try {
       const reports = [];
@@ -79,6 +109,8 @@ export default class ReportsV2Coor {
     }
   };
 
+  // Processor report functions
+    // Create a processor report
   static createProcessorReport = async (organizationID, processor, fileBuffer, mimetype, monthYear) => {
     try {
       // Parse the file
@@ -88,34 +120,26 @@ export default class ReportsV2Coor {
         throw new Error('Parsed data is empty. Please check the input file.');
       }
       // Check if a report already exists for this organization, processor, type, and month/year
-      console.log('checking if report exists');
       let reportExists;
-      console.log('processor:', processor);
       // Check if building Line Item Deductions report
       if (processor === 'Rectangle Health' || processor === 'Hyfin') {
-        console.log('checking for Line Item Deductions');
         reportExists = await ReportsV2M.reportExists(organizationID, 'Line Item Deductions', 'processor', monthYear);
-        console.log('reportExists:', reportExists);
         if (reportExists) {
           const report = await ReportsV2M.getProcessorReport(organizationID, 'Line Item Deductions', monthYear);
-          console.log('line items deduction report:', report.reportID);
           // Check if the processor is already in the report
           if (report.processors.includes(processor)) {
             throw new Error(`A ${processor} Report for ${monthYear} already was already added to the Line Item Deductions Processor Report.`);
           };
           // Update the existing report with the new processor data
-          console.log('sending to updateProcessorReport');
           const updatedReport = await ProcessorReportUtil.updateProcessorReport(processor, report, agents, csvData);
           // Update the report in the database
           const result = await ReportsV2M.updateReport(report.reportID, updatedReport);
           // Check if the report was updated successfully
           if (result.reportID) {
-            console.log('Report updated');
             return updatedReport;
           };
         } else {
           // Create a new Line Item Deductions report
-          console.log('Building Line Item Deductions report');
           const report = await ProcessorReportUtil.buildProcessorReport(organizationID, processor, monthYear, agents, csvData);
           // Create the report in the database
           const result = await ReportsV2M.createReport(report);
@@ -148,44 +172,55 @@ export default class ReportsV2Coor {
     }
   };
 
+  // Agent report functions
+    // Build an agent report
   static buildAgentReport = async (organizationID, agentID, monthYear) => {
     try {
-      console.log('Building agent report');
-      console.log('getting agent clients');
       const agent = await AgentsModel.getAgent(organizationID, agentID);
       if (!agent) {
         throw new Error('Agent not found');
       };
       // get processor reports
-      console.log('Getting processor reports for organization:', organizationID, 'and month/year:', monthYear);
       const processorReports = await ReportsV2M.getProcessorReportsByMonth(organizationID, monthYear);
       if (!processorReports || processorReports.length === 0) {
-        console.log('No processor reports found for this month/year.');
         throw new Error('No processor reports found for this month/year.');
       };
       // build report 
-      console.log('Building agent report');
       const agentReport = AgentReportUtil.buildAgentReport(organizationID, monthYear, agent, processorReports);
-      console.log('Agent Report:', agentReport);
       return agentReport;
     } catch (error) {
       throw new Error('Error creating agent report: ' + error.message);
     }
   };
 
-  static createAgentReport = async (organizationID, agentID, monthYear) => {
+    // Get an agent report
+  static getAgentReport = async (organizationID, agentID, monthYear) => {
     try {
-      console.log('Checking if agent exists');
+      return await ReportsV2M.getAgentReport(organizationID, agentID, monthYear);
+      
+    } catch (error) {
+      throw new Error('Error getting agent report: ' + error.message);
+      
+    }
+  };
+
+    // Create an agent report
+  static createAgentReport = async (organizationID, agentID, body) => {
+    try {
+      const monthYear = body.monthYear;
+      const reportData = body.reportData;
       const reportExists = await ReportsV2M.agentReportExists(organizationID, agentID, monthYear);
       if (reportExists) {
-        console.log('Agent Report already exists');
         throw new Error(`An Agent Report for ${monthYear} already exists.`);
       };
-      const agentReport = new Report(organizationID, 'agent', monthYear, []);
+      const agentReport = new Report(organizationID, '', 'agent', monthYear, reportData);
+      if (body.approved === true) {
+      agentReport.approved = body.approved;
+      }
       agentReport.agentID = agentID; // Add the agent ID to the report
       const result = await ReportsV2M.createReport(agentReport);
       if (result.acknowledged) {
-        return agentReport;
+        return result;
       } else {
         throw new Error('Error  report: ' + result.message);
       }
@@ -194,19 +229,135 @@ export default class ReportsV2Coor {
     }
   };
 
-  static deleteReport = async (reportID) => {
+  // Agent Summary report functions
+   // build an agent summary report
+   static buildAgentSummaryReport = async (organizationID, monthYear) => {
     try {
-      return await ReportsV2M.deleteReport(reportID);
+      console.log(`Starting generation of agent summary report for Organization: ${organizationID}, Month-Year: ${monthYear} in the coordinator`);
+  
+      // Fetch agents for the organization
+      console.log(`Fetching agents for Organization: ${organizationID}`);
+      const agents = await AgentsModel.getAgents(organizationID);
+      if (!agents || agents.length === 0) {
+        console.error(`No agents found for Organization: ${organizationID}`);
+        throw new Error('No agents found for this organization.');
+      }
+      console.log(`Successfully fetched ${agents.length} agents`);
+  
+      // Fetch processor reports for the given month/year
+      console.log(`Fetching processor reports for Organization: ${organizationID}, Month-Year: ${monthYear}`);
+      const processorReports = await ReportsV2M.getProcessorReportsByMonth(organizationID, monthYear);
+      console.log('Processor Reports:', processorReports);
+      if (!processorReports || processorReports.length === 0) {
+        console.error(`No processor reports found for Organization: ${organizationID}, Month-Year: ${monthYear}`);
+        throw new Error('No processor reports found for this month/year.');
+      }
+      console.log(`Successfully fetched ${processorReports.length} processor reports`);
+  
+      // Build the agent summary report
+      console.log(`Building agent summary report for Organization: ${organizationID}, Month-Year: ${monthYear}`);
+      const agentSummaryReport = AgentSummaryUtil.buildAgentSummaryReport(organizationID, monthYear, agents, processorReports);
+      console.log('Successfully built agent summary report');
+  
+      return agentSummaryReport;
     } catch (error) {
-      throw new Error('Error deleting report: ' + error.message);
+      console.error('Error building agent summary report:', error.message);
+      throw new Error('Error building agent summary report: ' + error.message);
+    }
+  };
+  
+
+    // Get an agent summary report
+  static getAgentSummaryReport = async (organizationID, monthYear) => {
+    try {
+      return await ReportsV2M.getAgentSummaryReport(organizationID, monthYear);
+    } catch (error) {
+      throw new Error('Error getting agent summary report: ' + error.message);
     }
   };
 
-  static updateReport = async (reportID, report) => {
+    // Create an agent summary report
+  static createAgentSummaryReport = async (organizationID, body) => {
     try {
-      return await ReportsV2M.updateReport(reportID, report);
+      
+      const monthYear = body.monthYear;
+      const reportData = body.reportData;
+      console.log('Coordinator: Creating Agent Summary Report: ', organizationID, monthYear, reportData);
+      const reportExists = await ReportsV2M.agentSummaryReportExists(organizationID, monthYear);
+
+      if (reportExists) {
+        throw new Error(`An Agent Report for ${monthYear} already exists.`);
+      };
+      const agentReport = new Report(organizationID, '', 'agent summary', monthYear, reportData);
+      if (body.approved === true) {
+      agentReport.approved = body.approved;
+      }
+      const result = await ReportsV2M.createReport(agentReport);
+      console.log('Coordinator: Agent Summary Report Result: ', result);
+      if (result.acknowledged) {
+        return result;
+      } else {
+        throw new Error('Error  report: ' + result.message);
+      }
+      
     } catch (error) {
-      throw new Error('Error updating report: ' + error.message);
+      throw new Error('Error creating agent summary report: ' + error.message);
+      
+    }
+  };
+
+  // Processor Summary report functions
+// build a processor summary report
+static buildProcessorSummaryReport = async (organizationID, monthYear) => {
+  try {
+    // Retrieve processor reports for the specified organization and month/year
+    const reports = await ReportsV2M.getProcessorReportsByMonth(organizationID, monthYear);
+    if (!reports || reports.length === 0) {
+      throw new Error('No processor reports found for this month/year.');
+    }
+
+    // Use the utility function to build the processor summary report
+    const processorSummaryReport = ProcessorSummaryUtil.createProcessorReport(organizationID, monthYear, reports);
+    // You can either save the summary report to the database here or return it
+    return processorSummaryReport;
+
+  } catch (error) {
+    throw new Error('Error building processor summary report: ' + error.message);
+  }
+};
+
+  
+      // Get a processor summary report
+  static getProcessorSummaryReport = async (organizationID, monthYear) => {
+    try {
+      console.log('Coordinator: Getting Processor Summary Report: ', organizationID, monthYear);
+      return await ReportsV2M.getProcessorSummaryReport(organizationID, monthYear);
+    } catch (error) {
+      throw new Error('Error getting processor summary report: ' + error.message);
+    }
+  };
+
+      // Create a processor summary report
+  static createProcessorSummaryReport = async (organizationID, body) => {
+    try {
+      const monthYear = body.monthYear;
+      const reportData = body.reportData;
+      const reportExists = await ReportsV2M.processorSummaryReportExists(organizationID, monthYear);
+      if (reportExists) {
+        throw new Error(`A Processor Summary Report for ${monthYear} already exists.`);
+      };
+      const processorSummaryReport = new Report(organizationID, '', 'processor summary', monthYear, reportData);
+      if (body.approved === true) {
+      processorSummaryReport.approved = body.approved;
+      }
+      const result = await ReportsV2M.createReport(processorSummaryReport);
+      if (result.acknowledged) {
+        return result;
+      } else {
+        throw new Error('Error creating processor summary report: ' + result.message);
+      }
+    } catch (error) {
+      throw new Error('Error creating processor summary report: ' + error.message);
     }
   };
 }

@@ -2,7 +2,6 @@ import AgentsCoordinator from '../coordinators/agents.coordinator.js';
 
 export const createAgent = async (req, res, next) => {
     try {
-        console.log('Controller: createAgent');
         const result = await AgentsCoordinator.createAgent(req.params.organizationID, req.body);
         if (!result.acknowledged) {
             return res.status(400).send(result);
@@ -35,7 +34,6 @@ export const uploadAgents = async (req, res, next) => {
       // Call the coordinator to create agents from the file
       const result = await AgentsCoordinator.uploadAgents(organizationID, fileBuffer, mimetype);
   
-      console.log('Agents upload completed');
   
       if (!result || result.length === 0) {
         return res.status(400).json({ message: 'Agents not created' });
@@ -63,7 +61,6 @@ export const getAgent = async (req, res, next) => {
 
 export const getAgents = async (req, res, next) => {
     try {
-        console.log(req.params.organizationID);
         const result = await AgentsCoordinator.getAgents(req.params.organizationID);
         if (result.message) {
             return res.status(404).send(result);
@@ -77,10 +74,8 @@ export const getAgents = async (req, res, next) => {
 
 export const updateAgent = async (req, res, next) => {
     try {
-        console.log(req.params.agentID);
         const result = await AgentsCoordinator.updateAgent(req.params.organizationID, req.params.agentID, req.body);
         if (result.success === false) {
-            console.log('Controller: updateAgent - Error');
             return res.status(400).send(result);
         } else {
             return res.status(200).send(result);
@@ -92,13 +87,10 @@ export const updateAgent = async (req, res, next) => {
 
 export const deleteAgent = async (req, res, next) => {
     try {
-        console.log('Controller: deleteAgent');
-        console.log('req.params.agentID:', req.params.agentID);
         const result = await AgentsCoordinator.deleteAgent(req.params.organizationID, req.params.agentID);
         if (!result.acknowledged) {
             return res.status(400).send(result);
         } else {
-            console.log('Agent deleted successfully');
             return res.status(204).send(); // Send 204 No Content for successful deletion
         }
     } catch (error) {

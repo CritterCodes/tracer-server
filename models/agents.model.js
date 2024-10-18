@@ -41,7 +41,6 @@ export default class AgentsModel {
 
     static getAgents = async (organizationID) => {
         try {
-            console.log('Getting agents for organization:', organizationID);
             const agents = await db.dbAgents().find({organizationID}, { projection: Constants.DEFAULT_PROJECTION }).toArray();
             if (agents.length === 0) {
                 return { message: 'No agents found' };
